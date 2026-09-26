@@ -45,6 +45,7 @@ public class Rating extends BaseEntity{
 
     public void addLike(UUID userId) {
         if (userId == null) throw new RatingException("UserId Required");
+        if (likes.contains(userId)) throw new RatingException("User already liked");
         this.likes.add(userId);
-    } //TODO ASK QUESTION DO RATINGS GET LIKES OR ENTRY POSTS GET LIKES
+    }
 }

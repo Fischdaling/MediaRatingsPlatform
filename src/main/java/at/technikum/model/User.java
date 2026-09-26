@@ -1,5 +1,7 @@
 package at.technikum.model;
 
+import at.technikum.exception.UserExceptions;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +32,7 @@ public class User extends BaseEntity{
 
     public void addToFavorite(MediaEntry favorite){
         if(favorite == null) throw new IllegalArgumentException("favorite is required");
+        if (Favorites.contains(favorite)) throw new UserExceptions("Favorite already in List");
         Favorites.add(favorite);
     }
 
