@@ -56,13 +56,17 @@ public class MediaService {
     }
 
     public MediaEntry updateMediaEntry(UUID currentUserId, UUID id, CreateMediaEntryDTO dto){
-
         MediaEntry entry = getMedia(id);
-
         isCreator(currentUserId, entry);
+        validate(dto);
 
-        entry = createMediaEntry(currentUserId,dto);
+        entry.setTitle(dto.title());
+        entry.setDescription(dto.description());
+        entry.setGenres(dto.genres());
+        entry.setReleaseDate(dto.releaseDate());
+        entry.setAgeRestriction(dto.ageRestriction());
 
+        entry.setUpdatedAtToNow();
         //TODO WRITE INTO DB
 
         return entry;

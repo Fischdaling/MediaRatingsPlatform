@@ -2,9 +2,7 @@ package at.technikum.service;
 
 import at.technikum.dto.request.CreateUserDTO;
 import at.technikum.dto.request.LoginDto;
-import at.technikum.exception.MediaExceptions;
 import at.technikum.exception.UserExceptions;
-import at.technikum.model.MediaEntry;
 import at.technikum.model.User;
 import at.technikum.repository.sql.UserRepository;
 
@@ -28,6 +26,7 @@ public class UserService {
     }
 
     public void register(CreateUserDTO dto){
+        // TODO if findUserByName(dto.username()) then throw Username is already taken exceptoion
         if (dto.username() == null || dto.username().isBlank())
             throw new UserExceptions("Username is required");
         if (dto.password() == null || dto.password().isBlank())
@@ -37,12 +36,14 @@ public class UserService {
         // TODO ADD USER TO DB
     }
 
-    public boolean login(UUID id, LoginDto dto){
-        User user = getUser(id);
+    public boolean login(LoginDto dto){
+        User user = findUserByName(dto.username());
 
-        if (user.getUsername().isEmpty() || user.getPassword().isEmpty()) throw new InvalidParameterException("Username or Password is empty");
-        if (!user.getUsername().equals(dto.username())) throw new InvalidParameterException("Username is wrong");
-        if (VerifyHash(dto.password(),user.getPassword().toCharArray()).verified) throw new InvalidParameterException("Password is wrong");
+        if (dto.username().isEmpty() ||
+                dto.password().isEmpty() ||
+                !user.getUsername().equals(dto.username()) ||
+                !VerifyHash(dto.password(),user.getPasswordHashed().toCharArray()).verified)
+            throw new InvalidParameterException("Username or Password wrong");
 
         //TODO TOKEN LOGIC
         return true;

@@ -11,11 +11,11 @@ public class Rating extends BaseEntity{
     private UUID ownerId;
     private UUID mediaEntryId;
     private int stars;
-    private Optional<String> comment;
+    private String comment;
     private List<UUID> likes; //UUID TO SEE WHO LIKED
     private boolean isHidden;
 
-    public Rating(UUID ownerId, UUID mediaEntryId,int stars, Optional<String> comment) {
+    public Rating(UUID ownerId, UUID mediaEntryId,int stars, String comment) {
         this.ownerId = ownerId;
         this.mediaEntryId = mediaEntryId;
         setStars(stars);
@@ -33,6 +33,41 @@ public class Rating extends BaseEntity{
         return ownerId;
     }
 
+    public void setOwnerId(UUID ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public UUID getMediaEntryId() {
+        return mediaEntryId;
+    }
+
+    public void setMediaEntryId(UUID mediaEntryId) {
+        this.mediaEntryId = mediaEntryId;
+    }
+
+    public int getStars() {
+        return stars;
+    }
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public List<UUID> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(List<UUID> likes) {
+        this.likes = likes;
+    }
+
+    public boolean isHidden() {
+        return isHidden;
+    }
 
     public void show() {
         isHidden = false;
@@ -45,6 +80,7 @@ public class Rating extends BaseEntity{
 
     public void addLike(UUID userId) {
         if (userId == null) throw new RatingException("UserId Required");
+        if (userId.equals(ownerId)) throw new RatingException("You can't like your own Rating");
         if (likes.contains(userId)) throw new RatingException("User already liked");
         this.likes.add(userId);
     }

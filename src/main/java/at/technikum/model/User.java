@@ -1,43 +1,52 @@
 package at.technikum.model;
 
-import at.technikum.exception.UserExceptions;
-
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
+import java.util.*;
 
 import static at.technikum.security.PasswordHasher.HashPassword;
 
 public class User extends BaseEntity{
-    private String Username;
-    private String PasswordHashed;
-    private List<MediaEntry> Favorites;
+    private String username;
+    private String passwordHashed;
+    private Set<MediaEntry> favorites;
 
     public void setPasswordHashed(String password) {
-        PasswordHashed = HashPassword(password);
+        this.passwordHashed = HashPassword(password);
     }
 
     public User(String username, String password) {
-        Username = username;
+        this.username = username;
         setPasswordHashed(password);
-        this.Favorites = new ArrayList<>();
+        this.favorites = new HashSet<>();
+    }
+
+    //Load From DB
+    public User(UUID id, LocalDateTime createAt, LocalDateTime updatedAt, String username, String passwordHashed, Set<MediaEntry> favorites) {
+        super(id, createAt,updatedAt);
+        this.username = username;
+        this.passwordHashed = passwordHashed;
+        this.favorites = favorites;
     }
 
     public String getUsername() {
-        return Username;
+        return this.username;
     }
 
-    public String getPassword() {
-        return PasswordHashed;
+    public String getPasswordHashed() {
+        return this.passwordHashed;
     }
 
     public void addToFavorite(MediaEntry favorite){
         if(favorite == null) throw new IllegalArgumentException("favorite is required");
-        if (Favorites.contains(favorite)) throw new UserExceptions("Favorite already in List");
-        Favorites.add(favorite);
+        this.favorites.add(favorite);
     }
 
     public void removeFromFavorite(MediaEntry favorite){
         if(favorite == null) throw new IllegalArgumentException("favorite is required");
-        Favorites.remove(favorite);
+        favorites.remove(favorite);
+    }
+    
+    public int getFavoriteCount(){
+        return this.favorites.size();
     }
 }

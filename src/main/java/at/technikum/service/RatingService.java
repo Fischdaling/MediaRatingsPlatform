@@ -2,12 +2,10 @@ package at.technikum.service;
 
 import at.technikum.dto.request.CreateRatingDTO;
 import at.technikum.exception.MediaExceptions;
-import at.technikum.exception.RatingException;
-import at.technikum.model.MediaEntry;
 import at.technikum.model.Rating;
 import at.technikum.repository.sql.RatingRepository;
 
-import java.lang.classfile.attribute.RecordAttribute;
+
 import java.util.UUID;
 
 public class RatingService {
@@ -34,6 +32,7 @@ public class RatingService {
 
     public Rating createRating(UUID currentUserId, CreateRatingDTO dto){
         validate(dto);
+        //TODO if !findMediaById(dto.mediaId()) then throw 404 exception
         Rating rating = new Rating(currentUserId, dto.mediaId(),dto.stars(),dto.comment());
         // TODO add to REPO
         return rating;
@@ -47,6 +46,7 @@ public class RatingService {
     public void like(UUID currentUserId, UUID id){
         Rating rating = getRating(id);
         rating.addLike(currentUserId);
+        rating.setUpdatedAtToNow();
     }
 
     public Rating updateRating(UUID currentUserId,UUID id, CreateRatingDTO dto){
@@ -56,6 +56,7 @@ public class RatingService {
         isOwner(currentUserId,rating);
 
         rating = createRating(currentUserId,dto);
+        rating.setUpdatedAtToNow();
         //TODO REplace in DB
         return rating;
     }
