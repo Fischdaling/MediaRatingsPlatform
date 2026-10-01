@@ -1,4 +1,4 @@
-package at.technikum.exception;
+package at.technikum.util.exception;
 
 public class EntityException extends RuntimeException {
     public EntityException(String message) {

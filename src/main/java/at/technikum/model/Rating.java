@@ -1,14 +1,13 @@
 package at.technikum.model;
 
-import at.technikum.exception.RatingException;
+import at.technikum.util.exception.RatingException;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static at.technikum.valdiation.Validation.validateNumberInRange;
-import static at.technikum.valdiation.Validation.validateString;
+import static at.technikum.util.valdiation.Validation.validateNumberInRange;
 
 public class Rating extends BaseEntity{
     private UUID ownerId;

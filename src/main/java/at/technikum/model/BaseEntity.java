@@ -1,8 +1,7 @@
 package at.technikum.model;
 
-import at.technikum.exception.EntityException;
+import at.technikum.util.exception.EntityException;
 
-import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -58,10 +57,9 @@ public abstract class BaseEntity {
 
     @Override
     public String toString() {
-        StringBuilder str = new StringBuilder();
-        str.append("Id: ").append(id)
-                .append(" Created At: ").append(createAt)
-                .append(" Last Updated At: ").append(getUpdatedAt());
-        return str.toString();
+        String str = "Id: " + id +
+                " Created At: " + createAt +
+                " Last Updated At: " + getUpdatedAt();
+        return str;
     }
 }

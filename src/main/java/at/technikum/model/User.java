@@ -4,7 +4,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static at.technikum.security.PasswordHasher.HashPassword;
-import static at.technikum.valdiation.Validation.*;
+import static at.technikum.util.valdiation.Validation.validatePassword;
+import static at.technikum.util.valdiation.Validation.validateString;
 
 public class User extends BaseEntity{
     private String username;

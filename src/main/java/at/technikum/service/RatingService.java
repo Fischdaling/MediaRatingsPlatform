@@ -2,29 +2,25 @@ package at.technikum.service;
 
 import at.technikum.dto.request.CreateRatingDTO;
 import at.technikum.dto.request.UpdateRatingDTO;
-import at.technikum.exception.MediaException;
-import at.technikum.exception.RatingException;
+import at.technikum.util.exception.MediaException;
+import at.technikum.util.exception.RatingException;
 import at.technikum.model.MediaEntry;
 import at.technikum.model.Rating;
-import at.technikum.model.User;
 import at.technikum.repository.interfaces.IMediaRepo;
 import at.technikum.repository.interfaces.IRatingRepo;
 import at.technikum.repository.interfaces.IUserRepo;
-import at.technikum.repository.sql.MediaRepository;
-import at.technikum.repository.sql.RatingRepository;
 
 
-import javax.print.attribute.standard.Media;
 import java.util.List;
 import java.util.UUID;
 
-import static at.technikum.valdiation.Validation.*;
+import static at.technikum.util.valdiation.Validation.*;
 
 public class RatingService implements IRatingService {
 
-    private IRatingRepo ratingRepo;
-    private IMediaRepo mediaRepo;
-    private IUserRepo userRepo;
+    private final IRatingRepo ratingRepo;
+    private final IMediaRepo mediaRepo;
+    private final IUserRepo userRepo;
     //TODO CRUD Services
     // USER can rate media Entries
     // createRating() adds comment

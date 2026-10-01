@@ -4,37 +4,35 @@ import at.technikum.dto.request.CreateUserDTO;
 import at.technikum.dto.request.LoginDto;
 import at.technikum.dto.request.UpdateUserDTO;
 import at.technikum.dto.response.UserProfile;
-import at.technikum.exception.FavoriteException;
-import at.technikum.exception.MediaException;
-import at.technikum.exception.UserException;
+import at.technikum.security.IAuthentication;
+import at.technikum.util.exception.FavoriteException;
+import at.technikum.util.exception.MediaException;
+import at.technikum.util.exception.UserException;
 import at.technikum.model.MediaEntry;
 import at.technikum.model.User;
 import at.technikum.repository.interfaces.IFavoriteRepo;
 import at.technikum.repository.interfaces.IMediaRepo;
 import at.technikum.repository.interfaces.IUserRepo;
-import at.technikum.repository.sql.FavoriteRepository;
-import at.technikum.repository.sql.MediaRepository;
-import at.technikum.repository.sql.UserRepository;
 
-import javax.lang.model.type.NoType;
-import javax.print.attribute.standard.Media;
 import java.security.InvalidParameterException;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static at.technikum.security.PasswordVerifier.VerifyHash;
-import static at.technikum.valdiation.Validation.*;
+import static at.technikum.util.valdiation.Validation.*;
 
 public class UserService implements IUserService{
 
-    private IUserRepo userRepo;
-    private IMediaRepo mediaRepo;
-    private IFavoriteRepo favoriteRepo;
+    private final IUserRepo userRepo;
+    private final IMediaRepo mediaRepo;
+    private final IFavoriteRepo favoriteRepo;
+    private final IAuthentication authentication;
 
-    public UserService(IUserRepo userRepo, IMediaRepo mediaRepo, IFavoriteRepo favoriteRepo) {
+    public UserService(IUserRepo userRepo, IMediaRepo mediaRepo, IFavoriteRepo favoriteRepo, IAuthentication authentication) {
         this.userRepo = userRepo;
         this.mediaRepo = mediaRepo;
         this.favoriteRepo = favoriteRepo;
+        this.authentication = authentication;
     }
 
     public UserProfile getProfile(UUID userId) {
@@ -78,7 +76,7 @@ public class UserService implements IUserService{
         userRepo.save(new User(dto.username(),dto.password()));
     }
 
-    public boolean login(LoginDto dto){
+    public String login(LoginDto dto){
 
         validateString(dto.username(), "Username");
 
@@ -87,8 +85,7 @@ public class UserService implements IUserService{
         if(!VerifyHash(dto.password(),user.getPasswordHashed().toCharArray()).verified)
             throw new InvalidParameterException("Username or Password wrong");
 
-        //TODO TOKEN LOGIC
-        return true;
+        return authentication.generate(user);
     }
 
     public Set<MediaEntry> getFavorites(UUID userId){

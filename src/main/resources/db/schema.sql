@@ -23,18 +23,6 @@ CREATE TABLE IF NOT EXISTS users (
     );
 
 -- ---------------------------------------------------------------------
--- Auth tokens (Authorization: Bearer <token>)
--- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS tokens (
-    token           VARCHAR(255) PRIMARY KEY,
-    user_id         UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    created_at      TIMESTAMP    NOT NULL DEFAULT now(),
-    expires_at      TIMESTAMP    NOT NULL DEFAULT (now() + INTERVAL '24 hours')
-    );
-
-CREATE INDEX IF NOT EXISTS idx_tokens_user ON tokens(user_id);
-
--- ---------------------------------------------------------------------
 -- Media entries (movie / series / game in one table, discriminated by media_type)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS media_entries (

@@ -1,17 +1,19 @@
 package at.technikum.service;
 
 import at.technikum.dto.request.CreateMediaEntryDTO;
-import at.technikum.exception.MediaException;
-import at.technikum.exception.UserException;
-import at.technikum.model.*;
+import at.technikum.model.GameEntry;
+import at.technikum.model.MediaEntry;
+import at.technikum.model.MovieEntry;
+import at.technikum.model.SeriesEntry;
 import at.technikum.repository.interfaces.IFavoriteRepo;
 import at.technikum.repository.interfaces.IMediaRepo;
 import at.technikum.repository.interfaces.IUserRepo;
-import at.technikum.repository.sql.MediaRepository;
+import at.technikum.util.exception.MediaException;
+import at.technikum.util.exception.UserException;
 
 import java.util.UUID;
 
-import static at.technikum.valdiation.Validation.*;
+import static at.technikum.util.valdiation.Validation.*;
 
 
 public class MediaService implements IMediaService {

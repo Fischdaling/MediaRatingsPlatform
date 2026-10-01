@@ -1,6 +1,6 @@
-package at.technikum.valdiation;
+package at.technikum.util.valdiation;
 
-import at.technikum.exception.InputValidationException;
+import at.technikum.util.exception.InputValidationException;
 
 public class Validation {
     public static <T> void notNull(T obj, String parameterName){

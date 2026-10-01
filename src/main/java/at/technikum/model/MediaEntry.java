@@ -7,7 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import static at.technikum.valdiation.Validation.*;
+import static at.technikum.util.valdiation.Validation.*;
 
 public abstract class MediaEntry extends BaseEntity{
     private UUID creatorId; //FK
