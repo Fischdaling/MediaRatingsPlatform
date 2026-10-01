@@ -29,7 +29,7 @@ public class Validation {
 
     public static <T extends Number> void validateNumberInRange(T num,T rangeMin, T rangeMax, String parameterName){
         allNotNull(num, rangeMin,rangeMax);
-        if (rangeMin.doubleValue() <= num.doubleValue() && num.doubleValue() <= rangeMax.doubleValue()) throw new InputValidationException(parameterName + " is smaller then: " + rangeMin + " or bigger then: " +rangeMax);
+        if (rangeMin.doubleValue() > num.doubleValue() || num.doubleValue() > rangeMax.doubleValue()) throw new InputValidationException(parameterName + " is smaller then: " + rangeMin + " or bigger then: " +rangeMax);
     }
 
 }

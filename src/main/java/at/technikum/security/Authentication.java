@@ -17,15 +17,10 @@ import static at.technikum.util.valdiation.Validation.validateNumberInRange;
 // https://www.baeldung.com/java-auth0-jwt
 
 public class Authentication implements IAuthentication {
-    private static final String ISSUER = "Rokyta 3D SWEN";
-    private final byte[] secret;
     private Algorithm algorithm;
-    private JWTVerifier verifier;
-
     public Authentication(String secret) {
-        validateNumberInRange(secret.length(), 32,Integer.MAX_VALUE,"Secret Length has to be over 32 characters long");
-        this.secret = secret.getBytes(StandardCharsets.UTF_8);
-        this.algorithm = Algorithm.HMAC256(secret);
+        validateNumberInRange(secret.length(), 32,Integer.MAX_VALUE,"Secret Length");
+        this.algorithm = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generate(User user){
@@ -38,7 +33,7 @@ public class Authentication implements IAuthentication {
 
     public UUID verify(String token){
         try {
-            DecodedJWT jwt = JWT.require(algorithm).withIssuer(ISSUER).build().verify(token);
+            DecodedJWT jwt = JWT.require(algorithm).build().verify(token);
             return UUID.fromString(jwt.getSubject());
         }catch (JWTVerificationException e){
             throw new UnauthorizedException("INvalid or expired token");
