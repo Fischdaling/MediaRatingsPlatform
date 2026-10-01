@@ -1,12 +1,15 @@
 package at.technikum.model;
 
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-public abstract class MediaEntry extends BaseEntity implements IMediaEntry{
+import static at.technikum.valdiation.Validation.*;
+
+public abstract class MediaEntry extends BaseEntity{
     private UUID creatorId; //FK
     private String title;
     private String description;
@@ -18,7 +21,22 @@ public abstract class MediaEntry extends BaseEntity implements IMediaEntry{
     private float averageScore;
     private MediaType mediaType;
 
-    public MediaEntry(UUID creatorId, String title, String description,List<Genre> genres ,Date releaseDate, int ageRestriction, MediaType mediaType) {
+    // LOAD FROM DB
+    public MediaEntry(UUID id, LocalDateTime createAt, LocalDateTime updatedAt, UUID creatorId, String title, String description, List<Genre> genres, Date releaseDate, int ageRestriction, List<Rating> ratings, int favoriteCount, MediaType mediaType, float averageScore) {
+        super(id, createAt, updatedAt);
+        this.creatorId = creatorId;
+        this.title = title;
+        this.description = description;
+        this.genres = genres;
+        this.releaseDate = releaseDate;
+        this.ageRestriction = ageRestriction;
+        this.ratings = ratings;
+        this.favoriteCount = favoriteCount;
+        this.mediaType = mediaType;
+        this.averageScore = averageScore;
+    }
+
+    public MediaEntry(UUID creatorId, String title, String description, List<Genre> genres , Date releaseDate, int ageRestriction, MediaType mediaType) {
         this.creatorId = creatorId;
         this.title = title;
         this.description = description;
@@ -41,6 +59,7 @@ public abstract class MediaEntry extends BaseEntity implements IMediaEntry{
     }
 
     public void setTitle(String title) {
+        validateString(title, "title");
         this.title = title;
     }
 
@@ -49,6 +68,8 @@ public abstract class MediaEntry extends BaseEntity implements IMediaEntry{
     }
 
     public void setDescription(String description) {
+        validateString(description, "description");
+
         this.description = description;
     }
 
@@ -73,6 +94,7 @@ public abstract class MediaEntry extends BaseEntity implements IMediaEntry{
     }
 
     public void setAgeRestriction(int ageRestriction) {
+        validateNumberInRange(ageRestriction,0,18,"ageRestriction");
         this.ageRestriction = ageRestriction;
     }
 
@@ -81,6 +103,7 @@ public abstract class MediaEntry extends BaseEntity implements IMediaEntry{
     }
 
     public void setFavoriteCount(int favoriteCount) {
+        validatePositiveNumber(favoriteCount, "Favorite count");
         this.favoriteCount = favoriteCount;
     }
 
@@ -99,6 +122,7 @@ public abstract class MediaEntry extends BaseEntity implements IMediaEntry{
     }
 
     public void setAvarageScore(float avarageScore) {
+        validatePositiveNumber(avarageScore, "avarageScore");
         this.averageScore = avarageScore;
     }
 
@@ -120,17 +144,38 @@ public abstract class MediaEntry extends BaseEntity implements IMediaEntry{
     }
 
     public float calculateAverageScore(){
-        this.averageScore = (float)ratings.stream().filter(r-> !r.isHidden()).mapToDouble((r)->r.getStars()).average().orElse(0.0);
+        this.averageScore = (float)ratings.stream().mapToDouble((r)->r.getStars()).average().orElse(0.0);
         return averageScore;
     }
 
     public int calculateFavoriteCount(){
         //TODO get check all users where this media is a favorite and sum?
+        //TODO USE SQL LATER ON AND PPUT THIS SOMEWHERE ELSE
         return 0;
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MediaEntry that = (MediaEntry) o;
+        return getId() != null && getId().equals(that.getId());
+    }
+
+    @Override
     public String toString() {
-        return super.toString();
+        return getClass().getSimpleName() + "{" +
+                "base=" + super.toString() +
+                ", creatorId=" + creatorId +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", genres=" + genres +
+                ", releaseDate=" + releaseDate +
+                ", ageRestriction=" + ageRestriction +
+                ", mediaType=" + mediaType +
+                ", ratingCount=" + (ratings != null ? ratings.size() : 0) +
+                ", averageScore=" + averageScore +
+                ", favoriteCount=" + favoriteCount +
+                '}';
     }
 }

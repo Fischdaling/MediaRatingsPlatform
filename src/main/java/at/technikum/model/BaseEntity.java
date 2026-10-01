@@ -1,20 +1,26 @@
 package at.technikum.model;
 
+import at.technikum.exception.EntityException;
 
+import java.security.InvalidParameterException;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 public abstract class BaseEntity {
-    private final UUID id;
-    private final LocalDateTime createAt;
+    final UUID id;
+    final LocalDateTime createAt;
     private LocalDateTime updatedAt;
+
 
     // if new creation
     public BaseEntity() {
         id = UUID.randomUUID();
         createAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
+    }
+
+    public UUID getId() {
+        return id;
     }
 
     //Load ffrom db
@@ -24,15 +30,38 @@ public abstract class BaseEntity {
         this.updatedAt =updatedAt;
     }
 
-    public UUID getId() {
-        return id;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
+        if (updatedAt.isBefore(this.updatedAt)) throw new EntityException("Last Updated cannot be in the past");
         this.updatedAt = updatedAt;
     }
 
     public void setUpdatedAtToNow(){
         setUpdatedAt(LocalDateTime.now());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
+        if (obj.getClass() != this.getClass()) return false;
+        final BaseEntity ent = (BaseEntity)obj;
+        return this.id.equals(ent.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("Id: ").append(id)
+                .append(" Created At: ").append(createAt)
+                .append(" Last Updated At: ").append(getUpdatedAt());
+        return str.toString();
     }
 }

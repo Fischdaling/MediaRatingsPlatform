@@ -16,13 +16,21 @@ public class FavoriteRepository implements IFavoriteRepo {
     }
 
     @Override
-    public boolean addNew(UUID userId, UUID mediaId) {
+    public boolean exists(UUID userId, UUID mediaId) {
         return false;
     }
 
     @Override
-    public boolean remove(UUID userId, UUID mediaId) {
+    public void addNew(UUID userId, UUID mediaId) {
+    }
+
+    @Override
+    public boolean update(UUID userId, UUID mediaId) {
         return false;
+    }
+
+    @Override
+    public void remove(UUID userId, UUID mediaId) {
     }
 
     @Override

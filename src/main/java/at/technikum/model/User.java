@@ -4,19 +4,22 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import static at.technikum.security.PasswordHasher.HashPassword;
+import static at.technikum.valdiation.Validation.*;
 
 public class User extends BaseEntity{
     private String username;
     private String passwordHashed;
     private Set<MediaEntry> favorites;
 
-    public void setPasswordHashed(String password) {
+    public void setPassword(String password) {
+        validatePassword(password, "password");
+
         this.passwordHashed = HashPassword(password);
     }
 
     public User(String username, String password) {
-        this.username = username;
-        setPasswordHashed(password);
+        setUsername(username);
+        setPassword(password);
         this.favorites = new HashSet<>();
     }
 
@@ -26,6 +29,19 @@ public class User extends BaseEntity{
         this.username = username;
         this.passwordHashed = passwordHashed;
         this.favorites = favorites;
+    }
+
+    public void setUsername(String username) {
+        validateString(username, "Username");
+        this.username = username;
+    }
+
+    public void setFavorites(Set<MediaEntry> favorites) {
+        this.favorites = favorites;
+    }
+
+    public Set<MediaEntry> getFavorites() {
+        return favorites;
     }
 
     public String getUsername() {
@@ -49,4 +65,22 @@ public class User extends BaseEntity{
     public int getFavoriteCount(){
         return this.favorites.size();
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "base=" + super.toString() +
+                ", username='" + username + '\'' +
+                ", favoriteCount=" + (favorites != null ? favorites.size() : 0) +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User that = (User) o;
+        return getId() != null && getId().equals(that.getId());
+    }
+
 }

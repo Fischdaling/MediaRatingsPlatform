@@ -38,6 +38,11 @@ public class MediaRepository implements IMediaRepo {
     }
 
     @Override
+    public MediaEntry update(MediaEntry mediaEntry) {
+        return null;
+    }
+
+    @Override
     public void delete(UUID mediaId) {
 
     }

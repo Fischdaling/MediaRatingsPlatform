@@ -32,6 +32,11 @@ public class RatingRepository implements IRatingRepo {
     }
 
     @Override
+    public void update(Rating rating) {
+
+    }
+
+    @Override
     public boolean delete(UUID id) {
         return false;
     }

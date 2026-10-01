@@ -9,4 +9,6 @@ public interface IUserRepo {
     User save(User user);
     Optional<User> findById(UUID id);
     Optional<User> findByUsername(String Username);
+    void update(User user);
+    void remove(UUID userId);
 }

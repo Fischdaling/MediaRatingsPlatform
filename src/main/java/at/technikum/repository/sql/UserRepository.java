@@ -28,4 +28,14 @@ public class UserRepository implements IUserRepo {
     public Optional<User> findByUsername(String Username) {
         return Optional.empty();
     }
+
+    @Override
+    public void update(User user) {
+
+    }
+
+    @Override
+    public void remove(UUID userId) {
+
+    }
 }

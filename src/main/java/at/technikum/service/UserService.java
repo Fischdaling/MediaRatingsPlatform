@@ -2,64 +2,117 @@ package at.technikum.service;
 
 import at.technikum.dto.request.CreateUserDTO;
 import at.technikum.dto.request.LoginDto;
-import at.technikum.exception.UserExceptions;
+import at.technikum.dto.request.UpdateUserDTO;
+import at.technikum.dto.response.UserProfile;
+import at.technikum.exception.FavoriteException;
+import at.technikum.exception.MediaException;
+import at.technikum.exception.UserException;
+import at.technikum.model.MediaEntry;
 import at.technikum.model.User;
+import at.technikum.repository.interfaces.IFavoriteRepo;
+import at.technikum.repository.interfaces.IMediaRepo;
+import at.technikum.repository.interfaces.IUserRepo;
+import at.technikum.repository.sql.FavoriteRepository;
+import at.technikum.repository.sql.MediaRepository;
 import at.technikum.repository.sql.UserRepository;
 
+import javax.lang.model.type.NoType;
+import javax.print.attribute.standard.Media;
 import java.security.InvalidParameterException;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static at.technikum.security.PasswordVerifier.VerifyHash;
+import static at.technikum.valdiation.Validation.*;
 
-public class UserService {
+public class UserService implements IUserService{
 
-    private UserRepository userRepo;
+    private IUserRepo userRepo;
+    private IMediaRepo mediaRepo;
+    private IFavoriteRepo favoriteRepo;
 
-    public UserService(UserRepository userRepo) {
+    public UserService(IUserRepo userRepo, IMediaRepo mediaRepo, IFavoriteRepo favoriteRepo) {
         this.userRepo = userRepo;
+        this.mediaRepo = mediaRepo;
+        this.favoriteRepo = favoriteRepo;
     }
 
+    public UserProfile getProfile(UUID userId) {
+        notNull(userId,"UserId");
 
-    public User getUser(UUID userId){
-        //find user in DB
-        return null;
+        User user = userRepo.findById(userId).orElseThrow(()-> new UserException("User not found"));
+        return new UserProfile(user.getUsername(),
+                user.getPasswordHashed(),
+                user.getFavorites()
+                        .stream()
+                        .map(m-> Map.entry(m.getId(),m.getTitle()))
+                        .collect(Collectors.toMap(m->m.getKey(), m->m.getValue())));
+    }
+
+    public UserProfile updateProfile(UUID userId, UpdateUserDTO dto) {
+        notNull(userId, "user Id");
+        User user = userRepo.findById(userId).orElseThrow(()-> new UserException("User not found"));
+        validateString(dto.username(), "Username");
+        validatePassword(dto.password(), "Password");
+
+        user.setUsername(dto.username());
+        user.setPassword(dto.password());
+        user.setFavorites(dto.favorites());
+
+        userRepo.update(user);
+        return new UserProfile(user.getUsername(),
+                user.getPasswordHashed(),
+                user.getFavorites()
+                        .stream()
+                        .map(m-> Map.entry(m.getId(),m.getTitle()))
+                        .collect(Collectors.toMap(m->m.getKey(), m->m.getValue())));
     }
 
     public void register(CreateUserDTO dto){
-        // TODO if findUserByName(dto.username()) then throw Username is already taken exceptoion
-        if (dto.username() == null || dto.username().isBlank())
-            throw new UserExceptions("Username is required");
-        if (dto.password() == null || dto.password().isBlank())
-            throw new UserExceptions("Password is required");
-        User user = new User(dto.username(),dto.password());
+        validateString(dto.username(), "Username");
 
-        // TODO ADD USER TO DB
+        if(userRepo.findByUsername(dto.username()).isPresent()) throw new UserException("Username is already taken");
+
+        validatePassword(dto.password(),"Password");
+
+        userRepo.save(new User(dto.username(),dto.password()));
     }
 
     public boolean login(LoginDto dto){
-        User user = findUserByName(dto.username());
 
-        if (dto.username().isEmpty() ||
-                dto.password().isEmpty() ||
-                !user.getUsername().equals(dto.username()) ||
-                !VerifyHash(dto.password(),user.getPasswordHashed().toCharArray()).verified)
+        validateString(dto.username(), "Username");
+
+        User user = userRepo.findByUsername(dto.username()).orElseThrow(()-> new UserException("Username or Password wrong"));
+
+        if(!VerifyHash(dto.password(),user.getPasswordHashed().toCharArray()).verified)
             throw new InvalidParameterException("Username or Password wrong");
 
         //TODO TOKEN LOGIC
         return true;
     }
 
+    public Set<MediaEntry> getFavorites(UUID userId){
+        notNull(userId,"User Id");
+        User user = userRepo.findById(userId).orElseThrow(()->new UserException("user not Found"));
+        return user.getFavorites();
+    }
+
     public void addToFavorite(UUID currentUserId, UUID mediaId){
-        User user = getUser(currentUserId);
-        //user.addToFavorite(); //TODO findMediaById() in Repo
-        //TODO update DB
+        notNull(currentUserId, "currentUserId");
+        notNull(mediaId, "media Id");
+        userRepo.findById(currentUserId).orElseThrow(()->new UserException("user not Found"));
+        mediaRepo.findById(mediaId).orElseThrow(()-> new MediaException("MediaId not found"));
+        if (favoriteRepo.exists(currentUserId, mediaId)) throw new FavoriteException("Media is already a favorite");
+
+        favoriteRepo.addNew(currentUserId,mediaId);
     }
 
     public void removeFromFavorite(UUID currentUserId, UUID mediaId){
-        User user = getUser(currentUserId);
-        //user.removeFromFavorite(); // TODO findMediaById() in Repo
-        // TODO UPDATE DB
+        notNull(currentUserId, "currentUserId");
+        notNull(mediaId, "media Id");
+        userRepo.findById(currentUserId).orElseThrow(()->new UserException("user not Found"));
+        mediaRepo.findById(mediaId).orElseThrow(()->new MediaException("Media not found"));
+        favoriteRepo.remove(currentUserId, mediaId);
     }
-
 
 }

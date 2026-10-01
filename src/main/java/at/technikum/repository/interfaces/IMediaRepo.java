@@ -1,5 +1,6 @@
 package at.technikum.repository.interfaces;
 
+import at.technikum.dto.request.CreateUserDTO;
 import at.technikum.model.MediaEntry;
 import at.technikum.model.MediaType;
 import at.technikum.repository.util.MediaSeachCriteria;
@@ -10,14 +11,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface IMediaRepo {
-    public MediaEntry save(MediaEntry mediaEntry);
+     MediaEntry save(MediaEntry mediaEntry);
 
-    public Optional<MediaEntry> findById(UUID id);
+     Optional<MediaEntry> findById(UUID id);
 
-    public List<MediaEntry> findByPartialMatching(MediaSeachCriteria criteria);
+     List<MediaEntry> findByPartialMatching(MediaSeachCriteria criteria);
 
-    public List<MediaEntry> findAll();
+     List<MediaEntry> findAll();
 
-    public void delete(UUID mediaId);
+     MediaEntry update(MediaEntry mediaEntry);
+
+     void delete(UUID mediaId);
 
 }

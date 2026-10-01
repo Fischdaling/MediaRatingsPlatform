@@ -1,72 +1,107 @@
 package at.technikum.service;
 
 import at.technikum.dto.request.CreateRatingDTO;
-import at.technikum.exception.MediaExceptions;
+import at.technikum.dto.request.UpdateRatingDTO;
+import at.technikum.exception.MediaException;
+import at.technikum.exception.RatingException;
+import at.technikum.model.MediaEntry;
 import at.technikum.model.Rating;
+import at.technikum.repository.interfaces.IMediaRepo;
+import at.technikum.repository.interfaces.IRatingRepo;
+import at.technikum.repository.sql.MediaRepository;
 import at.technikum.repository.sql.RatingRepository;
 
 
+import java.util.List;
 import java.util.UUID;
 
-public class RatingService {
+import static at.technikum.valdiation.Validation.*;
 
-    private RatingRepository RatingRepo;
+public class RatingService implements IRatingService {
+
+    private IRatingRepo ratingRepo;
+    private IMediaRepo mediaRepo;
     //TODO CRUD Services
     // USER can rate media Entries
     // createRating() adds comment
 
-    public RatingService(RatingRepository ratingRepo) {
-        RatingRepo = ratingRepo;
+    public RatingService(IRatingRepo ratingRepo, IMediaRepo mediaRepo) {
+        this.ratingRepo = ratingRepo;
+        this.mediaRepo = mediaRepo;
     }
 
-    // -------------------------------VAlidation-------------------------------
-    private void validate(CreateRatingDTO dto){
-        if (dto.mediaId() == null) throw new IllegalArgumentException("message");
-        if (dto.stars() >5 || dto.stars() < 1) throw new IllegalArgumentException("Only 1-5 stars possible");
 
+    // -------------------------------VAlidation-------------------------------
+
+    private void validate(CreateRatingDTO dto){
+        notNull(dto.mediaId(), "Media Entry Id");
+        validateString(dto.comment(), "Comment");
+        validateNumberInRange(dto.stars(),1,5, "Stars");
+    }
+    private void validate(UpdateRatingDTO dto){
+        validateString(dto.comment(), "Comment");
+        validateNumberInRange(dto.stars(),1,5, "Stars");
     }
 
     private void isOwner(UUID userId, Rating rating){
-        if (!rating.getOwnerId().equals(userId))throw new MediaExceptions("Lacking Permissions");
+        allNotNull(userId,rating);
+        if (!rating.getOwnerId().equals(userId))throw new RatingException("Lacking Permissions");
     }
 
-    public Rating createRating(UUID currentUserId, CreateRatingDTO dto){
+    public void createRating(UUID currentUserId, CreateRatingDTO dto){
+        notNull(currentUserId, "currentUserId");
         validate(dto);
-        //TODO if !findMediaById(dto.mediaId()) then throw 404 exception
-        Rating rating = new Rating(currentUserId, dto.mediaId(),dto.stars(),dto.comment());
-        // TODO add to REPO
-        return rating;
-    }
 
-    public Rating getRating(UUID id) {
-        //TODO FIND RATING PER ID
-        return null;
+        MediaEntry mediaEntry = mediaRepo.findById(dto.mediaId()).orElseThrow(()->new MediaException("MediaId not found"));
+        List<Rating> ratingsFromUser = ratingRepo.findByMediaId(mediaEntry.getId());
+        if(ratingsFromUser.stream().anyMatch(r -> r.getOwnerId().equals(currentUserId)))
+            throw new RatingException("current User already has a Rating about this Media");
+
+        ratingRepo.save(new Rating(currentUserId, dto.mediaId(),dto.stars(),dto.comment()));
     }
 
     public void like(UUID currentUserId, UUID id){
-        Rating rating = getRating(id);
+        notNull(id,"rating Id");
+        notNull(currentUserId, "currentUserId");
+
+        Rating rating = ratingRepo.findById(id).orElseThrow(()-> new RatingException("Rating Id not found"));
         rating.addLike(currentUserId);
-        rating.setUpdatedAtToNow();
+        ratingRepo.update(rating);
     }
 
-    public Rating updateRating(UUID currentUserId,UUID id, CreateRatingDTO dto){
+    public void removeLike(UUID currentUserId, UUID id){
+        notNull(id,"rating Id");
+        notNull(currentUserId, "currentUserId");
+
+        Rating rating = ratingRepo.findById(id).orElseThrow(()-> new RatingException("Rating Id not found"));
+        rating.removeLike(currentUserId);
+        ratingRepo.update(rating);
+    }
+
+
+    public Rating updateRating(UUID currentUserId,UUID id, UpdateRatingDTO dto){
+        notNull(id, "Rating Id");
+        notNull(currentUserId, "currentUserId");
+
         validate(dto);
-
-        Rating rating = getRating(id);
+        Rating rating = ratingRepo.findById(id).orElseThrow(()-> new RatingException("Rating not Found"));
         isOwner(currentUserId,rating);
 
-        rating = createRating(currentUserId,dto);
+        rating.setComment(dto.comment());
+        rating.setStars(dto.stars());
+
         rating.setUpdatedAtToNow();
-        //TODO REplace in DB
+        ratingRepo.update(rating);
         return rating;
     }
 
-    public Rating deleteRating(UUID currentUserId,UUID id){
-        Rating rating = getRating(id);
-        isOwner(currentUserId,rating);
+    public void deleteRating(UUID currentUserId,UUID id){
+        notNull(id, "Rating Id");
+        notNull(currentUserId, "currentUserId");
 
-        //TODO REMOVE IN DB
-        return rating;
+        Rating rating = ratingRepo.findById(id).orElseThrow(()->new RatingException("Rating Not Found"));
+        isOwner(currentUserId,rating);
+        ratingRepo.delete(rating.getId());
     }
 
 

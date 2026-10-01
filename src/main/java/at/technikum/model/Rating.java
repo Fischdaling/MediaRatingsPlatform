@@ -2,10 +2,13 @@ package at.technikum.model;
 
 import at.technikum.exception.RatingException;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
+
+import static at.technikum.valdiation.Validation.validateNumberInRange;
+import static at.technikum.valdiation.Validation.validateString;
 
 public class Rating extends BaseEntity{
     private UUID ownerId;
@@ -13,19 +16,30 @@ public class Rating extends BaseEntity{
     private int stars;
     private String comment;
     private List<UUID> likes; //UUID TO SEE WHO LIKED
-    private boolean isHidden;
+    private boolean commentsVisible;
 
-    public Rating(UUID ownerId, UUID mediaEntryId,int stars, String comment) {
+    // LOAD FROM DB
+    public Rating(UUID id, LocalDateTime createAt, LocalDateTime updatedAt, UUID ownerId, UUID mediaEntryId, List<UUID> likes, int stars, String comment, boolean isHidden) {
+        super(id, createAt, updatedAt);
+        this.ownerId = ownerId;
+        this.mediaEntryId = mediaEntryId;
+        this.likes = likes;
+        this.stars = stars;
+        this.comment = comment;
+        this.commentsVisible = isHidden;
+    }
+
+    public Rating(UUID ownerId, UUID mediaEntryId, int stars, String comment) {
         this.ownerId = ownerId;
         this.mediaEntryId = mediaEntryId;
         setStars(stars);
         this.comment = comment;
         this.likes = new ArrayList<>();
-        this.isHidden = true;
+        this.commentsVisible = true;
     }
 
-    private void setStars(int stars) {
-        if (stars >5 || stars < 1) throw new IllegalArgumentException("Only 1-5 stars possible");
+    public void setStars(int stars) {
+        validateNumberInRange(stars, 1,5, "Star Rating");
         this.stars = stars;
     }
 
@@ -56,6 +70,7 @@ public class Rating extends BaseEntity{
     public void setComment(String comment) {
         this.comment = comment;
     }
+    public void deleteComment(){this.comment = null;}
 
     public List<UUID> getLikes() {
         return likes;
@@ -65,16 +80,16 @@ public class Rating extends BaseEntity{
         this.likes = likes;
     }
 
-    public boolean isHidden() {
-        return isHidden;
+    public boolean isCommentsVisible() {
+        return commentsVisible;
     }
 
-    public void show() {
-        isHidden = false;
+    public void showComments() {
+        commentsVisible = false;
     }
 
-    public void hide() {
-        isHidden = true;
+    public void hideComments() {
+        commentsVisible = true;
     }
 
 
@@ -84,4 +99,34 @@ public class Rating extends BaseEntity{
         if (likes.contains(userId)) throw new RatingException("User already liked");
         this.likes.add(userId);
     }
+
+    public void removeLike(UUID userId){
+        if (userId == null) throw new RatingException("UserId Required");
+        if (userId.equals(ownerId)) throw new RatingException("You can't even like your Rating");
+        if (!likes.contains(userId)) throw new RatingException("user hasn't liked the Rating");
+        this.likes.remove(userId);
+
+    }
+
+    @Override
+    public String toString() {
+        return "Rating{" +
+                "base=" + super.toString() +
+                ", ownerId=" + ownerId +
+                ", mediaEntryId=" + mediaEntryId +
+                ", stars=" + stars +
+                ", comment='" + comment + '\'' +
+                ", likeCount=" + (likes != null ? likes.size() : 0) +
+                ", isHidden=" + commentsVisible +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Rating that = (Rating) o;
+        return getId() != null && getId().equals(that.getId());
+    }
+
 }
