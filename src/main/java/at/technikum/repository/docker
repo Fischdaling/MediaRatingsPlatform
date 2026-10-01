@@ -1,0 +1,10 @@
+docker rm -f postgresdb
+docker volume rm mrp_data
+
+docker run -d --name postgresdb \
+-e POSTGRES_USER=postgres \
+-e POSTGRES_PASSWORD=postgres \
+-e POSTGRES_DB=postgres \
+-p 5432:5432 \
+-v mrp_data:/var/lib/postgresql \
+  postgres:18
