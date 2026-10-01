@@ -18,6 +18,7 @@ public interface IRatingRepo {
     Rating save(Rating rating);
     Optional<Rating> findById(UUID id);
     List<Rating> findByMediaId(UUID mediaId);
+    List<Rating> findAll();
     void update(Rating rating);
     boolean delete(UUID id);
 }

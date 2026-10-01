@@ -6,12 +6,15 @@ import at.technikum.exception.MediaException;
 import at.technikum.exception.RatingException;
 import at.technikum.model.MediaEntry;
 import at.technikum.model.Rating;
+import at.technikum.model.User;
 import at.technikum.repository.interfaces.IMediaRepo;
 import at.technikum.repository.interfaces.IRatingRepo;
+import at.technikum.repository.interfaces.IUserRepo;
 import at.technikum.repository.sql.MediaRepository;
 import at.technikum.repository.sql.RatingRepository;
 
 
+import javax.print.attribute.standard.Media;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,13 +24,15 @@ public class RatingService implements IRatingService {
 
     private IRatingRepo ratingRepo;
     private IMediaRepo mediaRepo;
+    private IUserRepo userRepo;
     //TODO CRUD Services
     // USER can rate media Entries
     // createRating() adds comment
 
-    public RatingService(IRatingRepo ratingRepo, IMediaRepo mediaRepo) {
+    public RatingService(IRatingRepo ratingRepo, IMediaRepo mediaRepo, IUserRepo userRepo) {
         this.ratingRepo = ratingRepo;
         this.mediaRepo = mediaRepo;
+        this.userRepo = userRepo;
     }
 
 
@@ -59,6 +64,21 @@ public class RatingService implements IRatingService {
 
         ratingRepo.save(new Rating(currentUserId, dto.mediaId(),dto.stars(),dto.comment()));
     }
+
+    public List<Rating> getRatingsFromMedia(UUID mediaId) {
+        notNull(mediaId, "Media Id");
+        MediaEntry media = mediaRepo.findById(mediaId).orElseThrow(()->new MediaException("Media not found"));
+        return media.getRatings();
+    }
+
+
+    public List<Rating> getRatingHistory(UUID userId) {
+        notNull(userId, "user Id");
+        userRepo.findById(userId).orElseThrow(()->new MediaException("user not found"));
+
+        return ratingRepo.findAll().stream().filter(r-> r.getOwnerId().equals(userId)).toList();
+    }
+
 
     public void like(UUID currentUserId, UUID id){
         notNull(id,"rating Id");
@@ -101,6 +121,27 @@ public class RatingService implements IRatingService {
 
         Rating rating = ratingRepo.findById(id).orElseThrow(()->new RatingException("Rating Not Found"));
         isOwner(currentUserId,rating);
+        ratingRepo.delete(rating.getId());
+    }
+
+    public void confirmComment(UUID currentUserId, UUID ratingId) {
+        notNull(ratingId, "Rating Id");
+        notNull(currentUserId, "currentUserId");
+
+        Rating rating = ratingRepo.findById(ratingId).orElseThrow(()->new RatingException("Rating Not Found"));
+        isOwner(currentUserId,rating);
+
+        rating.showComments();
+        ratingRepo.update(rating);
+    }
+
+    public void deleteComment(UUID currentUserId, UUID ratingId) {
+        notNull(ratingId, "Rating Id");
+        notNull(currentUserId, "currentUserId");
+
+        Rating rating = ratingRepo.findById(ratingId).orElseThrow(()->new RatingException("Rating Not Found"));
+        isOwner(currentUserId,rating);
+
         ratingRepo.delete(rating.getId());
     }
 

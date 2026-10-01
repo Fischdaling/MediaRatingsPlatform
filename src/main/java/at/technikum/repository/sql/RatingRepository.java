@@ -32,6 +32,11 @@ public class RatingRepository implements IRatingRepo {
     }
 
     @Override
+    public List<Rating> findAll() {
+        return List.of();
+    }
+
+    @Override
     public void update(Rating rating) {
 
     }
