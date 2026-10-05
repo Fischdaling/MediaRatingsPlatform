@@ -5,7 +5,7 @@ import at.technikum.repository.util.Response;
 
 import java.util.UUID;
 
-public class RatingController implements IRatingController{
+public class RatingController extends BaseController implements IRatingController{
     @Override
     public Response updateRating(UUID userId, UUID ratingId, UpdateRatingDTO dto) {
         return null;

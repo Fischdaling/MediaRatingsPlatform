@@ -6,7 +6,7 @@ import at.technikum.repository.util.Response;
 
 import java.util.UUID;
 
-public class MediaController implements IMediaController{
+public class MediaController extends BaseController implements IMediaController{
     /*
     GET    /media
     GET    /media/{id}
@@ -17,6 +17,7 @@ public class MediaController implements IMediaController{
 
     @Override
     public Response getMedia(UUID userId) {
+
         return null;
     }
 

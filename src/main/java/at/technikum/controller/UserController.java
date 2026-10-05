@@ -7,7 +7,7 @@ import at.technikum.repository.util.Response;
 
 import java.util.UUID;
 
-public class UserController implements IUserController {
+public class UserController extends BaseController implements IUserController {
     @Override
     public Response register(CreateUserDTO dto) {
         return null;
