@@ -1,6 +1,7 @@
 package at.technikum.model;
 
 import at.technikum.util.exception.RatingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;

@@ -7,5 +7,5 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-public record UpdateMediaDTO(UUID mediaId, String title, String description, List<Genre> genres, Date releaseDate, int ageRestriction, MediaType mediaType) {
+public record UpdateMediaDTO(String title, String description, List<Genre> genres, Date releaseDate, int ageRestriction, MediaType mediaType) {
 }

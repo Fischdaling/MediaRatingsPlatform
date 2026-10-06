@@ -1,7 +1,7 @@
 package at.technikum.controller;
 
 import at.technikum.dto.request.UpdateRatingDTO;
-import at.technikum.repository.util.Response;
+import at.technikum.util.Response;
 
 import java.util.UUID;
 
@@ -14,4 +14,6 @@ public interface IRatingController {
     Response confirmRating(UUID userId, UUID ratingId);
     // /ratings/{Id}/like
     Response likeRating(UUID userId, UUID ratingId);
+
+    Response unlikeRating(UUID userId, UUID ratingId);
 }

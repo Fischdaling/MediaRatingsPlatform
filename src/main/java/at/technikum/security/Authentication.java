@@ -16,22 +16,25 @@ import java.util.UUID;
 import static at.technikum.util.valdiation.Validation.validateNumberInRange;
 // https://www.baeldung.com/java-auth0-jwt
 
-public class Authentication implements IAuthentication {
-    private Algorithm algorithm;
+public class Authentication {
+    private static Algorithm algorithm;
     public Authentication(String secret) {
         validateNumberInRange(secret.length(), 32,Integer.MAX_VALUE,"Secret Length");
-        this.algorithm = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
+        algorithm = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generate(User user){
+    public static String generate(User user){
         return JWT.create()
+                .withIssuer("technikum-wien")
                 .withSubject(user.getId().toString())
+                .withClaim("username", user.getUsername())
+                .withIssuedAt(Instant.now())
                 .withExpiresAt(Instant.now()
                         .plus(Duration.ofHours(168)))
                 .sign(algorithm);
     }
 
-    public UUID verify(String token){
+    public static UUID verify(String token){
         try {
             DecodedJWT jwt = JWT.require(algorithm).build().verify(token);
             return UUID.fromString(jwt.getSubject());

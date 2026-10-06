@@ -1,5 +1,8 @@
 package at.technikum.model;
 
+import at.technikum.dto.response.UserStatistic;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -25,7 +28,7 @@ public class User extends BaseEntity{
     }
 
     //Load From DB
-    public User(UUID id, LocalDateTime createAt, LocalDateTime updatedAt, String username, String passwordHashed, Set<MediaEntry> favorites) {
+    public User(UUID id, LocalDateTime createAt, LocalDateTime updatedAt, String username, String passwordHashed) {
         super(id, createAt,updatedAt);
         this.username = username;
         this.passwordHashed = passwordHashed;
@@ -66,6 +69,7 @@ public class User extends BaseEntity{
     public int getFavoriteCount(){
         return this.favorites.size();
     }
+
 
     @Override
     public String toString() {

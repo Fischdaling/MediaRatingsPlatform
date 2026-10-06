@@ -34,11 +34,6 @@ public class RatingService implements IRatingService {
 
     // -------------------------------VAlidation-------------------------------
 
-    private void validate(CreateRatingDTO dto){
-        notNull(dto.mediaId(), "Media Entry Id");
-        validateString(dto.comment(), "Comment");
-        validateNumberInRange(dto.stars(),1,5, "Stars");
-    }
     private void validate(UpdateRatingDTO dto){
         validateString(dto.comment(), "Comment");
         validateNumberInRange(dto.stars(),1,5, "Stars");
@@ -49,17 +44,7 @@ public class RatingService implements IRatingService {
         if (!rating.getOwnerId().equals(userId))throw new RatingException("Lacking Permissions");
     }
 
-    public void createRating(UUID currentUserId, CreateRatingDTO dto){
-        notNull(currentUserId, "currentUserId");
-        validate(dto);
 
-        MediaEntry mediaEntry = mediaRepo.findById(dto.mediaId()).orElseThrow(()->new MediaException("MediaId not found"));
-        List<Rating> ratingsFromUser = ratingRepo.findByMediaId(mediaEntry.getId());
-        if(ratingsFromUser.stream().anyMatch(r -> r.getOwnerId().equals(currentUserId)))
-            throw new RatingException("current User already has a Rating about this Media");
-
-        ratingRepo.save(new Rating(currentUserId, dto.mediaId(),dto.stars(),dto.comment()));
-    }
 
     public List<Rating> getRatingsFromMedia(UUID mediaId) {
         notNull(mediaId, "Media Id");
@@ -81,6 +66,7 @@ public class RatingService implements IRatingService {
         notNull(currentUserId, "currentUserId");
 
         Rating rating = ratingRepo.findById(id).orElseThrow(()-> new RatingException("Rating Id not found"));
+        if (rating.getLikes().contains(currentUserId)) throw new RatingException("User already Liked");
         rating.addLike(currentUserId);
         ratingRepo.update(rating);
     }
@@ -90,6 +76,7 @@ public class RatingService implements IRatingService {
         notNull(currentUserId, "currentUserId");
 
         Rating rating = ratingRepo.findById(id).orElseThrow(()-> new RatingException("Rating Id not found"));
+        if (!rating.getLikes().contains(currentUserId)) throw new RatingException("User hasn't liked yet");
         rating.removeLike(currentUserId);
         ratingRepo.update(rating);
     }
@@ -111,13 +98,14 @@ public class RatingService implements IRatingService {
         return rating;
     }
 
-    public void deleteRating(UUID currentUserId,UUID id){
+    public Rating deleteRating(UUID currentUserId,UUID id){
         notNull(id, "Rating Id");
         notNull(currentUserId, "currentUserId");
 
         Rating rating = ratingRepo.findById(id).orElseThrow(()->new RatingException("Rating Not Found"));
         isOwner(currentUserId,rating);
         ratingRepo.delete(rating.getId());
+        return rating;
     }
 
     public void confirmComment(UUID currentUserId, UUID ratingId) {

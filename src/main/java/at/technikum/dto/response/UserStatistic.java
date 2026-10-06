@@ -4,8 +4,6 @@ import at.technikum.model.Genre;
 
 import java.util.UUID;
 
-public record UserStatistic(UUID userId,
-                            int totalRatings,
+public record UserStatistic(int totalRatings,
                             double averageRating,
-                            Genre favoriteGenre,
                             int favoritesCount) {}

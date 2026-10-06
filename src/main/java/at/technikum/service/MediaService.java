@@ -1,39 +1,37 @@
 package at.technikum.service;
 
 import at.technikum.dto.request.CreateMediaEntryDTO;
-import at.technikum.model.GameEntry;
-import at.technikum.model.MediaEntry;
-import at.technikum.model.MovieEntry;
-import at.technikum.model.SeriesEntry;
+import at.technikum.dto.request.CreateRatingDTO;
+import at.technikum.dto.request.UpdateMediaDTO;
+import at.technikum.model.*;
 import at.technikum.repository.interfaces.IFavoriteRepo;
 import at.technikum.repository.interfaces.IMediaRepo;
+import at.technikum.repository.interfaces.IRatingRepo;
 import at.technikum.repository.interfaces.IUserRepo;
 import at.technikum.util.exception.MediaException;
+import at.technikum.util.exception.RatingException;
 import at.technikum.util.exception.UserException;
 
+import java.util.List;
 import java.util.UUID;
 
 import static at.technikum.util.valdiation.Validation.*;
 
 
 public class MediaService implements IMediaService {
+    private final IRatingRepo ratingRepo;
     private final IMediaRepo mediaRepo;
     private final IUserRepo userRepo;
     private final IFavoriteRepo favoriteRepo;
 
-    public MediaService(IMediaRepo mediaRepository, IUserRepo userRepo, IFavoriteRepo favoriteRepo) {
+    public MediaService(IRatingRepo ratingRepo, IMediaRepo mediaRepository, IUserRepo userRepo, IFavoriteRepo favoriteRepo) {
+        this.ratingRepo = ratingRepo;
         this.mediaRepo = mediaRepository;
         this.userRepo = userRepo;
         this.favoriteRepo = favoriteRepo;
     }
 
     // ------------------------------------------------Validate--------------------------------------------------//
-    private void validate(CreateMediaEntryDTO dto) {
-        validateString(dto.title(),"Title");
-        validateNumberInRange(dto.ageRestriction(),0,18,"ageRestriction");
-        if (dto.mediaType() == null)
-            throw new MediaException("Media type is Required");
-    }
     private void validateUser(UUID userId){
         notNull(userId, "UserId");
         userRepo.findById(userId).orElseThrow(()-> new UserException("User not Found"));
@@ -46,8 +44,21 @@ public class MediaService implements IMediaService {
     //TODO CRUD MEDIA
     // USER can CRUD Media entries
 
+    @Override
+    public MediaEntry getMediaEntry(UUID mediaId) {
+        return mediaRepo.findById(mediaId).orElseThrow(()-> new MediaException("Media not found"));
+    }
+
+    @Override
+    public List<MediaEntry> getMediaEntries() {
+        return mediaRepo.findAll();
+    }
+
     public MediaEntry createMediaEntry(UUID creatorId, CreateMediaEntryDTO dto){
-        validate(dto);
+        validateString(dto.title(),"Title");
+        validateNumberInRange(dto.ageRestriction(),0,18,"ageRestriction");
+        if (dto.mediaType() == null)
+            throw new MediaException("Media type is Required");
         validateUser(creatorId);
 
         MediaEntry entry;
@@ -62,11 +73,14 @@ public class MediaService implements IMediaService {
         return entry;
     }
 
-    public MediaEntry updateMediaEntry(UUID currentUserId, UUID id, CreateMediaEntryDTO dto){
-        notNull(id, "Media Entry Id");
-        MediaEntry entry = mediaRepo.findById(id).orElseThrow(()-> new MediaException("Media not found"));
+    public MediaEntry updateMediaEntry(UUID currentUserId, UUID mediaId,UpdateMediaDTO dto){
+        notNull(mediaId, "Media Entry Id");
+        MediaEntry entry = mediaRepo.findById(mediaId).orElseThrow(()-> new MediaException("Media not found"));
         isCreator(currentUserId, entry);
-        validate(dto);
+        validateString(dto.title(),"Title");
+        validateNumberInRange(dto.ageRestriction(),0,18,"ageRestriction");
+        if (dto.mediaType() == null)
+            throw new MediaException("Media type is Required");
 
         entry.setTitle(dto.title());
         entry.setDescription(dto.description());
@@ -89,6 +103,21 @@ public class MediaService implements IMediaService {
         favoriteRepo.remove(currentUserId, id);
         //delete from repo
         mediaRepo.delete(entry.getId());
+    }
+
+    public Rating createRating(UUID currentUserId, UUID mediaId,CreateRatingDTO dto){
+        notNull(currentUserId, "currentUserId");
+        notNull(mediaId, "Media Entry Id");
+        validateString(dto.comment(), "Comment");
+        validateNumberInRange(dto.stars(),1,5, "Stars");
+
+        MediaEntry mediaEntry = mediaRepo.findById(mediaId).orElseThrow(()->new MediaException("MediaId not found"));
+        List<Rating> ratingsFromUser = ratingRepo.findByMediaId(mediaEntry.getId());
+        if(ratingsFromUser.stream().anyMatch(r -> r.getOwnerId().equals(currentUserId)))
+            throw new RatingException("current User already has a Rating about this Media");
+        Rating rating = new Rating(currentUserId, mediaId,dto.stars(),dto.comment());
+        ratingRepo.save(rating);
+        return rating;
     }
 
 }

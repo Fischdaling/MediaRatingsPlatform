@@ -3,8 +3,12 @@ package at.technikum.service;
 import at.technikum.dto.request.CreateUserDTO;
 import at.technikum.dto.request.LoginDto;
 import at.technikum.dto.request.UpdateUserDTO;
-import at.technikum.dto.response.UserProfile;
-import at.technikum.security.IAuthentication;
+import at.technikum.dto.response.LeaderboardEntry;
+import at.technikum.dto.response.UserStatistic;
+import at.technikum.model.Genre;
+import at.technikum.model.Rating;
+import at.technikum.repository.interfaces.IRatingRepo;
+import at.technikum.security.Authentication;
 import at.technikum.util.exception.FavoriteException;
 import at.technikum.util.exception.MediaException;
 import at.technikum.util.exception.UserException;
@@ -16,7 +20,6 @@ import at.technikum.repository.interfaces.IUserRepo;
 
 import java.security.InvalidParameterException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static at.technikum.security.PasswordVerifier.VerifyHash;
 import static at.technikum.util.valdiation.Validation.*;
@@ -26,29 +29,28 @@ public class UserService implements IUserService{
     private final IUserRepo userRepo;
     private final IMediaRepo mediaRepo;
     private final IFavoriteRepo favoriteRepo;
-    private final IAuthentication authentication;
+    private final IRatingRepo ratingRepo;
 
-    public UserService(IUserRepo userRepo, IMediaRepo mediaRepo, IFavoriteRepo favoriteRepo, IAuthentication authentication) {
+    public UserService(IUserRepo userRepo, IMediaRepo mediaRepo, IFavoriteRepo favoriteRepo, IRatingRepo ratingRepo) {
         this.userRepo = userRepo;
         this.mediaRepo = mediaRepo;
         this.favoriteRepo = favoriteRepo;
-        this.authentication = authentication;
+        this.ratingRepo = ratingRepo;
     }
 
-    public UserProfile getProfile(UUID userId) {
+    public User getProfile(UUID userId) {
         notNull(userId,"UserId");
 
-        User user = userRepo.findById(userId).orElseThrow(()-> new UserException("User not found"));
-        return new UserProfile(user.getUsername(),
-                user.getPasswordHashed(),
-                user.getFavorites()
-                        .stream()
-                        .map(m-> Map.entry(m.getId(),m.getTitle()))
-                        .collect(Collectors.toMap(m->m.getKey(), m->m.getValue())));
+        return userRepo.findById(userId).orElseThrow(()-> new UserException("User not found"));
     }
 
-    public UserProfile updateProfile(UUID userId, UpdateUserDTO dto) {
+
+
+
+    public User updateProfile(UUID currentUserId, UUID userId, UpdateUserDTO dto) {
         notNull(userId, "user Id");
+        notNull(currentUserId, "currentUserId");
+        if (!currentUserId.equals(userId)) throw new UserException("Insufficient Permissions");
         User user = userRepo.findById(userId).orElseThrow(()-> new UserException("User not found"));
         validateString(dto.username(), "Username");
         validatePassword(dto.password(), "Password");
@@ -58,22 +60,26 @@ public class UserService implements IUserService{
         user.setFavorites(dto.favorites());
 
         userRepo.update(user);
-        return new UserProfile(user.getUsername(),
-                user.getPasswordHashed(),
-                user.getFavorites()
-                        .stream()
-                        .map(m-> Map.entry(m.getId(),m.getTitle()))
-                        .collect(Collectors.toMap(m->m.getKey(), m->m.getValue())));
+        return user;
     }
 
-    public void register(CreateUserDTO dto){
+    @Override
+    public void deleteUser(UUID currentUserId, UUID userId) {
+        notNull(userId, "user Id");
+        notNull(currentUserId, "currentUserId");
+        if (!currentUserId.equals(userId)) throw new UserException("Insufficient Permissions");
+        userRepo.remove(userRepo.findById(userId).orElseThrow(()-> new UserException("User not found")).getId());
+    }
+
+    public User register(CreateUserDTO dto){
         validateString(dto.username(), "Username");
 
         if(userRepo.findByUsername(dto.username()).isPresent()) throw new UserException("Username is already taken");
 
         validatePassword(dto.password(),"Password");
-
-        userRepo.save(new User(dto.username(),dto.password()));
+        User user =new User(dto.username(),dto.password());
+        userRepo.save(user);
+        return user;
     }
 
     public String login(LoginDto dto){
@@ -85,7 +91,7 @@ public class UserService implements IUserService{
         if(!VerifyHash(dto.password(),user.getPasswordHashed().toCharArray()).verified)
             throw new InvalidParameterException("Username or Password wrong");
 
-        return authentication.generate(user);
+        return Authentication.generate(user);
     }
 
     public Set<MediaEntry> getFavorites(UUID userId){
@@ -111,5 +117,49 @@ public class UserService implements IUserService{
         mediaRepo.findById(mediaId).orElseThrow(()->new MediaException("Media not found"));
         favoriteRepo.remove(currentUserId, mediaId);
     }
+    public UserStatistic getUserStatistic(UUID currentUserId,UUID userId){
+        notNull(currentUserId, "currentUserId");
+        notNull(userId, "user Id");
+        if (!currentUserId.equals(userId)) throw new UserException("Lacking Permissions");
+
+        User user = userRepo.findById(userId).orElseThrow(()->new UserException("user not Found"));
+
+        List<Rating> ratingsFromUser = ratingRepo.findAll().stream()
+                .filter(rating -> rating.getOwnerId() == userId)
+                .toList();
+
+        int totalRatings= ratingsFromUser.size();
+
+        int allStars=ratingsFromUser.stream().mapToInt(r->r.getStars()).sum();
+
+        return new UserStatistic(totalRatings,(double)allStars/totalRatings,user.getFavoriteCount());
+    }
+
+    @Override
+    public List<Rating> getRatingHistory(UUID currentUserId, UUID userId) {
+        notNull(currentUserId, "currentUserId");
+        notNull(userId, "user Id");
+        if (!currentUserId.equals(userId)) throw new UserException("Lacking Permissions");
+
+        return ratingRepo.findAll().stream()
+                .filter(rating -> rating.getOwnerId() == userId)
+                .toList();
+    }
+
+    @Override
+    public List<LeaderboardEntry> getLeaderboard() {
+        List<LeaderboardEntry> entries = new ArrayList<>();
+
+        int i = 0;
+        for (User u : userRepo.findAll()){
+            entries.add(new LeaderboardEntry(i+1,u.getId(),u.getUsername(),ratingRepo.findAll().stream()
+                    .filter(rating -> rating.getOwnerId() == u.getId())
+                    .toList().size()));
+            i++;
+        }
+
+        return entries;
+    }
+
 
 }

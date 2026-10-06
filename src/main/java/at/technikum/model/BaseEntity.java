@@ -1,6 +1,10 @@
 package at.technikum.model;
 
 import at.technikum.util.exception.EntityException;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -55,11 +59,24 @@ public abstract class BaseEntity {
         return id.hashCode();
     }
 
+    public LocalDateTime getCreateAt() {
+        return createAt;
+    }
+
     @Override
     public String toString() {
         String str = "Id: " + id +
                 " Created At: " + createAt +
                 " Last Updated At: " + getUpdatedAt();
         return str;
+    }
+
+    public String toJsonString() {
+        ObjectMapper ow = new ObjectMapper();
+        try {
+            return ow.writeValueAsString(this);
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not serialize " + getClass().getSimpleName(), e);
+        }
     }
 }
