@@ -5,6 +5,7 @@ import at.technikum.model.MediaEntry;
 import at.technikum.model.MediaType;
 import at.technikum.model.Rating;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
@@ -18,7 +19,7 @@ public record MediaEntryDTO(
         String title,
         String description,
         List<Genre> genres,
-        Date releaseDate,
+        LocalDate releaseDate,
         int ageRestriction,
         List<Rating> ratings,
         int favoriteCount,

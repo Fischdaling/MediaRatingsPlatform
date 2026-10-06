@@ -2,7 +2,8 @@ package at.technikum.repository.sql;
 
 import at.technikum.model.MediaEntry;
 import at.technikum.repository.interfaces.IFavoriteRepo;
-import at.technikum.util.exception.UserException;
+import at.technikum.util.exception.RepositoryExeption;
+import at.technikum.util.exception.RepositoryExeption;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -32,7 +33,7 @@ public class FavoriteRepository implements IFavoriteRepo {
                 return rs.next();
             }
         } catch (SQLException e) {
-            throw new UserException("Could not check favorite");
+            throw new RepositoryExeption("Could not check favorite");
         }
     }
 
@@ -46,7 +47,7 @@ public class FavoriteRepository implements IFavoriteRepo {
             ps.setObject(2, mediaId);
             return ps.executeUpdate() == 1;
         } catch (SQLException e) {
-            throw new UserException("Could not add favorite");
+            throw new RepositoryExeption("Could not add favorite");
         }
     }
 
@@ -64,7 +65,7 @@ public class FavoriteRepository implements IFavoriteRepo {
             ps.setObject(2, mediaId);
             return ps.executeUpdate() == 1;
         } catch (SQLException e) {
-            throw new UserException("Could not remove favorite");
+            throw new RepositoryExeption("Could not remove favorite");
         }
     }
 
@@ -82,7 +83,7 @@ public class FavoriteRepository implements IFavoriteRepo {
                 return ids;
             }
         } catch (SQLException e) {
-            throw new UserException("Could not load favorites");
+            throw new RepositoryExeption("Could not load favorites");
         }
     }
 }

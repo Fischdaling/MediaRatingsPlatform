@@ -1,6 +1,7 @@
 package at.technikum.model;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,7 +15,7 @@ public abstract class MediaEntry extends BaseEntity{
     private String title;
     private String description;
     private List<Genre> genres;
-    private Date releaseDate;
+    private LocalDate releaseDate;
     private int ageRestriction;
     private List<Rating> ratings; // 1-5
     private int favoriteCount;
@@ -22,7 +23,7 @@ public abstract class MediaEntry extends BaseEntity{
     private MediaType mediaType;
 
     // LOAD FROM DB
-    public MediaEntry(UUID id, LocalDateTime createAt, LocalDateTime updatedAt, UUID creatorId, String title, String description, List<Genre> genres, Date releaseDate, int ageRestriction, List<Rating> ratings, int favoriteCount, MediaType mediaType, float averageScore) {
+    public MediaEntry(UUID id, LocalDateTime createAt, LocalDateTime updatedAt, UUID creatorId, String title, String description, List<Genre> genres, LocalDate releaseDate, int ageRestriction, List<Rating> ratings, int favoriteCount, MediaType mediaType, float averageScore) {
         super(id, createAt, updatedAt);
         this.creatorId = creatorId;
         this.title = title;
@@ -36,7 +37,7 @@ public abstract class MediaEntry extends BaseEntity{
         this.averageScore = averageScore;
     }
 
-    public MediaEntry(UUID creatorId, String title, String description, List<Genre> genres , Date releaseDate, int ageRestriction, MediaType mediaType) {
+    public MediaEntry(UUID creatorId, String title, String description, List<Genre> genres , LocalDate releaseDate, int ageRestriction, MediaType mediaType) {
         this.creatorId = creatorId;
         this.title = title;
         this.description = description;
@@ -81,11 +82,11 @@ public abstract class MediaEntry extends BaseEntity{
         this.genres = genres;
     }
 
-    public Date getReleaseDate() {
+    public LocalDate getReleaseDate() {
         return releaseDate;
     }
 
-    public void setReleaseDate(Date releaseDate) {
+    public void setReleaseDate(LocalDate releaseDate) {
         this.releaseDate = releaseDate;
     }
 

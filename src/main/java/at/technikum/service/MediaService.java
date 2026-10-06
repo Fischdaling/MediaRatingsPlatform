@@ -22,13 +22,11 @@ public class MediaService implements IMediaService {
     private final IRatingRepo ratingRepo;
     private final IMediaRepo mediaRepo;
     private final IUserRepo userRepo;
-    private final IFavoriteRepo favoriteRepo;
 
     public MediaService(IRatingRepo ratingRepo, IMediaRepo mediaRepository, IUserRepo userRepo, IFavoriteRepo favoriteRepo) {
         this.ratingRepo = ratingRepo;
         this.mediaRepo = mediaRepository;
         this.userRepo = userRepo;
-        this.favoriteRepo = favoriteRepo;
     }
 
     // ------------------------------------------------Validate--------------------------------------------------//
@@ -99,8 +97,6 @@ public class MediaService implements IMediaService {
 
         MediaEntry entry = mediaRepo.findById(id).orElseThrow(()-> new MediaException("Media not found"));
         isCreator(currentUserId, entry);
-
-        favoriteRepo.remove(currentUserId, id);
         //delete from repo
         mediaRepo.delete(entry.getId());
     }
@@ -108,7 +104,6 @@ public class MediaService implements IMediaService {
     public Rating createRating(UUID currentUserId, UUID mediaId,CreateRatingDTO dto){
         notNull(currentUserId, "currentUserId");
         notNull(mediaId, "Media Entry Id");
-        validateString(dto.comment(), "Comment");
         validateNumberInRange(dto.stars(),1,5, "Stars");
 
         MediaEntry mediaEntry = mediaRepo.findById(mediaId).orElseThrow(()->new MediaException("MediaId not found"));

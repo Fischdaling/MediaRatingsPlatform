@@ -2,7 +2,7 @@ package at.technikum.repository.sql;
 
 import at.technikum.model.User;
 import at.technikum.repository.interfaces.IUserRepo;
-import at.technikum.util.exception.UserException;
+import at.technikum.util.exception.RepositoryExeption;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -39,7 +39,7 @@ public class UserRepository implements IUserRepo {
             ps.executeUpdate();
             return user;
         } catch (SQLException e) {
-            throw new UserException("Could not save user"+ e.getMessage());
+            throw new RepositoryExeption("Could not save user"+ e.getMessage());
         }
     }
 
@@ -54,7 +54,7 @@ public class UserRepository implements IUserRepo {
             }
             return users;
         } catch (SQLException e) {
-            throw new UserException("Could not load users"+ e.getMessage());
+            throw new RepositoryExeption("Could not load users"+ e.getMessage());
         }
     }
 
